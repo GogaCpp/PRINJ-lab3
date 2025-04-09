@@ -23,9 +23,9 @@ async def login(
         )
     access_token = await create_access_token(
         data={
-            "sub": str(user["id"]),
+            "sub": str(user.id),
+            "role": user.user_type_id
         },
-        expires_delta=timedelta(minutes=480),
-        user_id=user["id"]
+        expires_delta=timedelta(minutes=480)
     )
     return {"access_token": access_token, "token_type": "bearer"}

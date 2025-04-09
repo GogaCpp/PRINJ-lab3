@@ -3,11 +3,10 @@ from datetime import datetime, timedelta
 from ..config import settings
 
 
-async def create_access_token(data: dict, expires_delta: timedelta, user_id):
+async def create_access_token(data: dict, expires_delta: timedelta):
     to_encode = data.copy()
     expire = datetime.now() + expires_delta
     to_encode.update({"exp": expire})
-    to_encode.update({"user_id": str(user_id)})
     encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     return encoded_jwt
 

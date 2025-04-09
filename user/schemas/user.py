@@ -7,18 +7,21 @@ from typing import Optional
 class User(BaseModel):
     id: uuid.UUID
     name: str
+    surname: str
     password: str
     user_type_id: int
 
 
 class UserCreatePayload(BaseModel):
     name: str
+    surname: str
     password: str
     user_type_id: int
 
 
 class UserUpdatePayload(BaseModel):
     name: Optional[str]
+    surname: Optional[str]
     password: Optional[str]
     user_type_id: Optional[int]
 
@@ -28,6 +31,7 @@ class BaseUser(BaseModel):
 
     id: uuid.UUID
     name: str
+    surname: str
     password: str
     user_type_id: int
 

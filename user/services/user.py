@@ -41,10 +41,11 @@ class UserService():
 
         login = (await self._session.execute(select(User).where(User.name == user.name))).scalar()
         if login:
-            raise HTTPException(status=status.HTTP_403_FORBIDDEN, detatil="User alredy exist")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User alredy exist")
 
         user = User(
             name=user.name,
+            surname=user.surname,
             password=user.password,
             user_type_id=user.user_type_id
         )
