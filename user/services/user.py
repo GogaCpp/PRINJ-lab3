@@ -1,36 +1,58 @@
 import uuid
 from fastapi import HTTPException, status
 
-from ..schemas.user import UserCreatePayload, UserUpdatePayload
+from ..models.users import User
 
-user_list = [
-    {
-        "id": uuid.uuid1(),
-        "name": "admin",
-        "password": "secret",
-        "user_type_id": 3
-    }
-]
+from ..schemas.user import UserCreatePayload, UserUpdatePayload
+import uuid
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from fastapi import Depends, HTTPException, status
+
+from ..database import get_async_session
 
 
 class UserService():
-    def __init__(self):
-        ...
+    def __init__(
+        self,
+        session: AsyncSession = Depends(get_async_session)
+    ):
+        self._session = session
 
     async def get_user_by_id(self, id: uuid.UUID):
-        for user in user_list:
-            if user["id"] == id:
-                return user
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        query = (
+            select(User)
+            .where(
+                User.id == id
+            )
+        )
+        user = (await self._session.execute(query)).scalars().first()
+        return user
 
     async def get_user_list(self):
-        return {"user_list": user_list}
+        query = (
+            select(User)
+        )
+        users = (await self._session.execute(query)).scalars().all()
+        return {"user_list": users}
 
     async def create_user(self, user: UserCreatePayload):
-        new_user = user.model_dump(exclude_unset=True)
-        new_user["id"] = uuid.uuid1()
-        user_list.append(new_user)
-        return new_user
+
+        login = (await self._session.execute(select(User).where(User.name == user.name))).scalar()
+        if login:
+            raise HTTPException(status=status.HTTP_403_FORBIDDEN, detatil="User alredy exist")
+
+        user = User(
+            name=user.name,
+            password=user.password,
+            user_type_id=user.user_type_id
+        )
+
+        self._session.add(user)
+        await self._session.commit()
+        await self._session.refresh(user)
+        return user
 
     async def update_user(self, id: uuid.UUID, user_base: UserUpdatePayload):
         user = await self.get_user_by_id(id)
@@ -38,21 +60,29 @@ class UserService():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
         update_data = user_base.model_dump(exclude_unset=True)
-        # ! мб тут надо по дргом
-        for user in user_list:
-            if user["id"] == id:
-                for key in user:
-                    user[key] = update_data.get(key, user[key])
 
+        for key, value in update_data.items():
+            setattr(user, key, value)
+
+        await self._session.commit()
         return user
 
     async def delete_user(self, id: uuid.UUID):
-        for user in user_list:
-            if user["id"] == id:
-                user_list.remove(user)
+        user = await self.get_user_by_id(id)
+
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+        await self._session.delete(user)
+        await self._session.commit()
 
     async def auth_user(self, name: str, password: str):
-        for user in user_list:
-            if user["name"] == name and user["password"] == password:
-                return user
-        return None
+        query = (
+            select(User)
+            .where(
+                User.name == name,
+                User.password == password
+            )
+        )
+        user = (await self._session.execute(query)).scalars().first()
+        return user

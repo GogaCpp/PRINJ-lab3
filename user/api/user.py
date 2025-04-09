@@ -7,12 +7,10 @@ from ..config import oauth2_scheme
 
 router = APIRouter(prefix="/user")
 
-
 @router.get("/", response_model=BaseUserList)
 async def get_list(
-    token: str = Depends(oauth2_scheme),
-
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
+    token: str = Depends(oauth2_scheme)
 ):
     return await user_service.get_user_list()
 
@@ -20,9 +18,8 @@ async def get_list(
 @router.get("/{user_id}", response_model=BaseUser)
 async def get_user(
     user_id: uuid.UUID,
-    token: str = Depends(oauth2_scheme),
-
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
+    token: str = Depends(oauth2_scheme)
 ):
     return await user_service.get_user_by_id(user_id)
 
@@ -39,8 +36,8 @@ async def create_user(
 async def update_user(
     user_id: uuid.UUID,
     user: UserUpdatePayload,
-    token: str = Depends(oauth2_scheme),
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
+    token: str = Depends(oauth2_scheme)
 ):
     return await user_service.update_user(user_id, user)
 
@@ -48,7 +45,7 @@ async def update_user(
 @router.delete("/{user_id}")
 async def delete_user(
     user_id: uuid.UUID,
-    token: str = Depends(oauth2_scheme),
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
+    token: str = Depends(oauth2_scheme)
 ):
     return await user_service.delete_user(user_id)
