@@ -1,9 +1,10 @@
+import uuid
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from ..config import settings
 
 
-async def create_access_token(data: dict, expires_delta: timedelta):
+async def create_access_token(data: dict, expires_delta: timedelta,):
     to_encode = data.copy()
     expire = datetime.now() + expires_delta
     to_encode.update({"exp": expire})

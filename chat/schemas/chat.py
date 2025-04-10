@@ -1,3 +1,4 @@
+from typing import Optional
 import uuid
 from pydantic import BaseModel, ConfigDict
 
@@ -5,13 +6,18 @@ from pydantic import BaseModel, ConfigDict
 class Chat(BaseModel):
     id: uuid.UUID
     name: str
-    is_group: str
+    is_group: bool
     creator_id: uuid.UUID
 
 
 class ChatCreatePayload(BaseModel):
     name: str
-    is_group: str
+    is_group: bool
+
+
+class ChatUpdatePayload(BaseModel):
+    name: Optional[str]
+    is_group: Optional[bool]
 
 
 class BaseChat(BaseModel):
@@ -19,7 +25,7 @@ class BaseChat(BaseModel):
 
     id: uuid.UUID
     name: str
-    is_group: str
+    is_group: bool
     creator_id: uuid.UUID
 
 

@@ -88,6 +88,7 @@ class UserService():
             )
         )
         user = (await self._session.execute(query)).scalars().first()
-        if pbkdf2_sha256.verify(password, user.password):
+        
+        if user is not None and pbkdf2_sha256.verify(password, user.password):
             return user
         return None

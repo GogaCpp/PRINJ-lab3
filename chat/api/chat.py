@@ -32,9 +32,9 @@ async def create_chat(
     token: str = Depends(oauth2_scheme),
     chat_service: ChatService = Depends(),
 ):
-    d_tokens = await decode_token(token)
-    creator_id = d_tokens["user_id"]
-    return await chat_service.create_chat(chat, user_id=creator_id)
+    d_t = await decode_token(token)
+    user_id = d_t["sub"]
+    return await chat_service.create_chat(chat, user_id)
 
 
 @router.delete("/{chat_id}")
