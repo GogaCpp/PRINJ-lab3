@@ -1,5 +1,7 @@
 import uuid
 from fastapi import HTTPException, status
+from passlib.hash import pbkdf2_sha256
+from fastapi import Depends, HTTPException, status
 
 from ..models.users import User
 
@@ -7,8 +9,6 @@ from ..schemas.user import UserCreatePayload, UserUpdatePayload
 import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from fastapi import Depends, HTTPException, status
 
 from ..database import get_async_session
 
@@ -46,7 +46,7 @@ class UserService():
         user = User(
             name=user.name,
             surname=user.surname,
-            password=user.password,
+            password=pbkdf2_sha256.hash(user.password),
             user_type_id=user.user_type_id
         )
 
@@ -65,6 +65,9 @@ class UserService():
         for key, value in update_data.items():
             setattr(user, key, value)
 
+        if user_base.password is not None:
+            user.password = pbkdf2_sha256.hash(user_base.password)
+
         await self._session.commit()
         return user
 
@@ -81,9 +84,10 @@ class UserService():
         query = (
             select(User)
             .where(
-                User.name == name,
-                User.password == password
+                User.name == name
             )
         )
         user = (await self._session.execute(query)).scalars().first()
-        return user
+        if pbkdf2_sha256.verify(password, user.password):
+            return user
+        return None
